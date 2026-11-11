@@ -1,4 +1,4 @@
-# Local stack for testing before AWS: PostgreSQL + MongoDB (DocumentDB stand-in) + MinIO (S3 stand-in) + API + worker
+# Local stack for testing before AWS: PostgreSQL + MongoDB (DocumentDB stand-in) + Moto (S3 stand-in) + API + worker
 services:
   postgres:
     image: postgres:16
@@ -9,11 +9,10 @@ services:
   mongo:
     image: mongo:7
     ports: [ "27017:27017" ]
-  minio:
-    image: minio/minio:latest
-    command: server /data --console-address ":9001"
-    environment: { MINIO_ROOT_USER: minioadmin, MINIO_ROOT_PASSWORD: minioadmin }
-    ports: [ "9000:9000", "9001:9001" ]
+  minio:   # S3 stand-in. MinIO's images left Docker Hub in Sept 2026, so this runs Moto's S3 emulator instead.
+    image: motoserver/moto:latest
+    environment: { MOTO_PORT: "9000" }
+    ports: [ "9000:9000" ]
   api: &app
     build: ./backend
     depends_on: { postgres: { condition: service_healthy }, mongo: { condition: service_started }, minio: { condition: service_started } }
